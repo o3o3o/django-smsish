@@ -1,7 +1,7 @@
 from django.conf import settings
 from django.core.mail.backends.base import BaseEmailBackend
 
-from twilio.rest import TwilioRestClient
+from twilio.rest import Client
 
 
 class SMSBackend(BaseEmailBackend):
@@ -65,5 +65,5 @@ class SMSBackend(BaseEmailBackend):
 	def _get_twilio_client(self):
 		account = settings.TWILIO_ACCOUNT_SID
 		token = settings.TWILIO_AUTH_TOKEN
-		client = TwilioRestClient(account, token)
+		client = Client(account, token)
 		return client
