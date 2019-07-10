@@ -23,3 +23,10 @@ To use the Twilio backend set some additional settings as well.
 	TWILIO_FROM_NUMBER = os.getenv("TWILIO_FROM_NUMBER", TWILIO_MAGIC_FROM_NUMBER)
 
 Note: You must also `pip install twilio` to use the Twilio backend.
+
+
+# Test
+
+```
+tox
+```
