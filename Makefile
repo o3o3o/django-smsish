@@ -14,7 +14,7 @@ test:
 test_coverage:
 	coverage run --source=smsish manage.py test smsish
 
-build:
+build: clean
 	python setup.py sdist bdist_wheel
 
 release: build

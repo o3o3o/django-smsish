@@ -7,6 +7,7 @@ from django.test.utils import captured_stdout
 from django.test.utils import override_settings
 
 from twilio.rest import Client
+from yunpian_python_sdk.ypclient import YunpianClient
 
 from smsish.sms import send_sms
 from smsish.sms import send_mass_sms
@@ -116,9 +117,53 @@ class SendSMSUsingConsoleTestCase(TestCase):
 
 
 @override_settings(SMS_BACKEND="smsish.sms.backends.twilio.SMSBackend")
-@patch("smsish.sms.backends.twilio.SMSBackend._get_twilio_client", lambda x: Client('test', 'test'))
+@patch(
+    "smsish.sms.backends.twilio.SMSBackend._get_twilio_client",
+    lambda x: Client("test", "test"),
+)
 @patch("smsish.sms.backends.twilio.SMSBackend._send", lambda x, y: True)
 class SendSMSUsingTwilioTestCase(TestCase):
+    def setUp(self):
+
+        self.sms = SMSMessage("Body", VALID_FROM_NUMBER, [VALID_TO_NUMBER])
+        self.sms_no_recipients = SMSMessage("Body", VALID_TO_NUMBER, [])
+
+    def test_send(self):
+        sms = self.sms
+        numSent = sms.send()
+        self.assertEqual(numSent, 1)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_send_sms(self):
+        numSent = send_sms("Body", VALID_FROM_NUMBER, [VALID_TO_NUMBER])
+        self.assertEqual(numSent, 1)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_send_to_nobody(self):
+        sms = self.sms_no_recipients
+        numSent = sms.send()
+        self.assertEqual(numSent, 0)
+        self.assertEqual(len(mail.outbox), 0)
+
+    def test_send_mass_sms(self):
+        from smsish.sms import get_sms_connection
+
+        with get_sms_connection(settings.SMS_BACKEND) as connection:
+            datatuple = (
+                ("Body", VALID_FROM_NUMBER, [VALID_TO_NUMBER]) for _ in range(10)
+            )
+            numSent = send_mass_sms(datatuple, connection=connection)
+            self.assertEqual(numSent, 10)
+            self.assertEqual(len(mail.outbox), 0)
+
+
+@override_settings(SMS_BACKEND="smsish.sms.backends.yunpian.SMSBackend")
+@patch(
+    "smsish.sms.backends.yunpian.SMSBackend._get_connection",
+    lambda x: YunpianClient("test_api_key"),
+)
+@patch("smsish.sms.backends.yunpian.SMSBackend._send", lambda x, y: True)
+class SendSMSUsingYunPianTestCase(TestCase):
     def setUp(self):
 
         self.sms = SMSMessage("Body", VALID_FROM_NUMBER, [VALID_TO_NUMBER])
@@ -291,7 +336,10 @@ class SendSMSUsingRQTestCase(TestCase):
 
         get_worker().work(burst=True)
 
-    @patch('django_rq.queues.get_redis_connection', lambda x, y: fakeredis.FakeStrictRedis())
+    @patch(
+        "django_rq.queues.get_redis_connection",
+        lambda x, y: fakeredis.FakeStrictRedis(),
+    )
     def test_send_with_connection(self):
         # from django.conf import settings
         from smsish.sms import get_sms_connection
