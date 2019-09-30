@@ -1,8 +1,11 @@
-# django-smsish
+[![PyPI version](https://badge.fury.io/py/django-smsish2.svg)](https://badge.fury.io/py/django-smsish2) [![Build Status](https://travis-ci.org/o3o3o/django-smsish.svg?branch=master)](https://travis-ci.org/o3o3o/django-smsish)
+
+# django-smsish2
 Forked from [RyanBalfanz](https://github.com/RyanBalfanz/django-smsish)
 
-Installation
-------------
+# Installation
+
+`pip install django-smsish2`
 
 Add `smsish` to your `INSTALLED_APPS` and set `SMS_BACKEND`.
 ```
